@@ -236,3 +236,174 @@ ansible-playbook raham.yml
    77  cat raham.yml
    78  ansible-playbook raham.yml
    79  history
+====================================================================
+
+Tags: To skip or execute a specific task/tasks in a playbook
+
+- hosts: all
+  tasks:
+    - name: install git
+      yum: name=git state=absent
+      tags: a
+    - name: install httpd
+      yum: name=httpd state=absent
+      tags: b
+    - name: starting httpd
+      service: name=httpd state=started
+      tags: c
+    - name: create user
+      user: name=ananth state=absent
+      tags: d
+
+SINGLE TAG EXECUTION: ansible-playbook raham.yml --tags a
+MULTI TAG EXECUTION: ansible-playbook raham.yml --tags b,c
+SINGLE TAG SKIPPING: ansible-playbook raham.yml --skip-tags "a"
+MULTI TAG SKIPPING: ansible-playbook raham.yml --skip-tags "b,c"
+
+NOTE: unistall the package when installation is done
+sed -i 's/present/absent/g' raham.yml
+ansible-playbook raham.yml
+
+LOOPS:
+
+- hosts: all
+  tasks:
+    - name: install PKGS
+      yum: name={{item}} state=present
+      with_items:
+        - git
+        - maven
+        - docker
+        - tree
+        - java-1.8.0-openjdk
+        - httpd
+ansible-playbook raham.yml
+sed -i 's/present/absent/g' raham.yml
+ansible-playbook raham.yml
+
+- hosts: all
+  tasks:
+    - name: install PKGS
+      user: name={{item}} state=absent
+      with_items:
+        - sravanthi
+        - kunal
+        - nayana
+        - prateeksha
+        - vijay
+        - revi
+
+ansible-playbook raham.yml
+sed -i 's/present/absent/g' raham.yml
+ansible-playbook raham.yml
+
+
+SHELL VS COMMAND VS RAW:
+
+- hosts: all
+  tasks:
+    - name: install git
+      shell: yum install git -y
+
+    - name: install java-1.8.0
+      command: yum install java-1.8.0-openjdk -y
+
+    - name: install apache
+      raw: yum install httpd -y
+
+raw >> command >> shell
+ansible-playbook raham.yml
+sed -i 's/install/remove/g' raham.yml
+ansible-playbook raham.yml
+
+CONDITIONS:
+CLUSTER: Group of servers
+HOMOGENIUS: all servers have having same OS and flavour.
+HETROGENIUS: all servers have different OS and flavour.
+
+used to execute this module when we have different Clusters.
+
+RedHat=yum
+Ubuntu=apt
+
+- hosts: all
+  tasks:
+    - name: installing git on RedHat
+      yum: name=git state=present
+      when: ansible_os_family == "RedHat"
+    - name: installing git on Debian
+      apt: name=git state=present
+      when: ansible_os_family == "Debian"
+
+SETUP MODULE: to show complete info of worker nodes.
+ansible all -m setup 
+ansible all -m setup | grep -i family
+ansible all -m setup | grep -i mem
+ansible all -m setup | grep -i cpus
+
+HISTORY:
+ 80  vim raham.yml
+   81  ansible-playbook raham.yml --tags d
+   82  cat raham.yml
+   83  ansible-playbook raham.yml --tags a,b
+   84  cat raham.yml
+   85  sed -i 's/absent/present/g' raham.yml
+   86  cat raham.yml
+   87* ansible-playbook raham.yml --skip-tags "c,d"
+   88  sed -i 's/present/absent/g' raham.yml
+   89  ansible-playbook raham.yml
+   90  vim raham.yml
+   91  ansible-playbook raham.yml
+   92  ansible all -a "git --version"
+   93  ansible all -a "mvn --version"
+   94  ansible all -a "docker --version"
+   95  ansible all -a "tree --version"
+   96  ansible all -a "java -version"
+   97  ansible all -a "update-alternatives --config java"
+   98  ansible all -a "httpd -v"
+   99  sed -i 's/present/absent/g' raham.yml
+  100  ansible-playbook raham.yml
+  101  ansible all -a "httpd -v"
+  102  ansible all -a "java -version"
+  103  ansible all -a "tree --version"
+  104  ansible all -a "docker --version"
+  105  ansible all -a "yum remove git* java* -y"
+  106  ansible all -a "java -version"
+  107  ansible all -a "git --version"
+  108  vim raham.yml
+  109  ansible-playbook raham.yml
+  110  ansible-playbook "cat /etc/passwd"
+  111  ansible all -a "cat /etc/passwd"
+  112  cat raham.yml
+  113  vim raham.yml
+  114  ansible-playbook raham.yml
+  115  ansible all -a "cat /etc/passwd"
+  116  sed -i 's/present/absent/g' raham.yml
+  117  ansible-playbook raham.yml
+  118  vim raham.yml
+  119  ansible-playbook raham.yml
+  120  ansible all -a "java -version"
+  121  ansible all -a "git --version"
+  122  ansible all -a "httpd --version"
+  123  sed -i 's/present/absent/g' raham.yml
+  124  ansible-playbook raham.yml
+  125  vim raham.yml
+  126  cat raham.yml
+  127  sed -i 's/present/absent/g' raham.yml
+  128  cat raham.yml
+  129  sed -i 's/install/remove/g' raham.yml
+  130  cat raham.yml
+  131  ansible-playbook raham.yml
+  132  vim raham.yml
+  133  ansible-playbook raham.yml
+  134  vim raham.yml
+  135  ansible-playbook raham.yml
+  136  cat raham.yml
+  137  ansible all -a "cat /etc/os-release"
+  138  ansible setup -m all
+  139  ansible all -m setup
+  140  ansible all -m setup | grep -i family
+  141  ansible all -m setup | grep -i cpus
+  142  ansible all -m setup | grep -i memory
+  143  ansible all -m setup | grep -i mem
+  144  history
