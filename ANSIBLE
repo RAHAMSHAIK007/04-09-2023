@@ -407,3 +407,127 @@ HISTORY:
   142  ansible all -m setup | grep -i memory
   143  ansible all -m setup | grep -i mem
   144  history
+
+===========================================
+
+
+
+HANDLERS:
+in handlers, one task is dependent on another task
+here task-2(restarting httpd) depends on task-1(installing httpd)
+once task-1 is executed then it will notify to task-2 to perform the action.
+
+
+- hosts: all
+  tasks:
+    - name: installing httpd
+      yum: name=httpd state=present
+      notify: starting httpd
+
+  handlers:
+    - name: starting httpd
+      service: name=httpd state=started
+
+
+ansible-playbook raham.yml 
+sed -i 's/present/absent/g' raham.yml
+ansible-playbook raham.yml
+
+
+ROLES:
+roles is a way of organizing playbooks in a structured format.
+main purpose of roles is to encapsulate the data.
+we can reuse the roles multiple times.
+length of the playbook is decreased.
+it contains on vars, templates, task -----
+in real time we use roles for our daily activities.
+
+ mkdir playbooks
+cd playbooks/
+
+mkdir -p roles/pkgs/tasks
+vim roles/pkgs/tasks/main.yml
+
+- name: installing pkgs
+  yum: name=git state=present
+- name: install maven
+  yum: name=maven state=present
+- name: installing httpd
+  yum: name=httpd state=present
+
+mkdir -p roles/users/tasks
+vim roles/users/tasks/main.yml
+
+- name: create users
+  user: name={{item}} state=present
+  with_items:
+    - uday
+    - naveen
+    - rohit
+    - lokesh
+    - saipallavi
+    - supriya
+
+mkdir -p roles/abc/tasks
+vim roles/abc/tasks/main.yml
+
+- name: installing httpd
+  yum: name=httpd state=present
+
+- name: starting httpd
+  service: name=httpd state=started
+
+.
+├── master.yml
+└── roles
+    ├── abc
+    │   └── tasks
+    │       └── main.yml
+    ├── pkgs
+    │   └── tasks
+    │       └── main.yml
+    └── users
+        └── tasks
+            └── main.yml
+
+COLORS:
+yellow	: success
+green	: already done
+red	: failed
+blue	: skipped
+
+ansible_nodename
+ansible_os_family
+ansible_processor_vcpus
+block_available
+ansible_memtotal_mb
+ansible_memfree_mb
+
+
+Debug: used to print the msgs/customize ops
+
+- hosts: all
+  tasks:
+    - name: to pring mgs
+      debug:
+        msg: "the node name os: {{ansible_hostname}}, the total mem is: {{ansible_memtotal_mb}}, free mem is {{ansible_memfree_mb}}, the flavour of ec2 is: {{ansible_os_family}}, toto cpus is: {{ansible_processor_vcpus}}"
+
+
+JINJA2 TEMPLATE: used to get the customized op, here its a text file which can extract the variables and these values will change as per time.
+
+LOOKUPS: this module used to get data from files, db and key values
+
+- hosts: dev
+  vars:
+    a: "{{lookup('file', '/root/creds.txt') }}"
+  tasks:
+    - debug:
+        msg: "hai my user name is {{a}}"
+
+cat creds.txt
+user=raham
+
+
+:
+
+
