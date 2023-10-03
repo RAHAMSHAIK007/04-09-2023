@@ -1,0 +1,85 @@
+MONOLITHIC = SINGLE APPLICATION -- > SINGLE SERVER -- > SINGLE DB
+MICROSERVICES = SINGLE APPLICATIO‭N -- > MULTIPLE SERVERS -- > MULTIPLE DB
+
+10 X 1 = 100 RS  (DB=100)   = 200 RS/DAY
+10 X 10 = 1000 RS(DB=1000)  = 2000 RS/DAY
+
+MONLITICH = SERVER 
+MICROSERVICES = CONTAINERS
+
+CONTAINERS = SERVER 
+
+CONTAINER:
+its like a server.
+containers are light weighted.
+it will not have any os by default.
+we can install os with images.
+
+IMAGE: 
+it have OS, pkgs, and software used to run our container.
+
+
+CONTAINERAZATION: the process of packing application with its dependencies.
+ex: pubg(app) = play store
+    maps(dependencies) = internet
+
+after docker = app + maps = playstore
+
+
+cake(app) = bakery
+kinfe(dependency) = house
+
+after docker = cake + kinfe = bakery
+
+
+DOCKER:
+It is a tool used to create containers.
+in containers, we can create, run, and deploy our application.
+It's free and open source.
+It's platform-independent.
+but docker runs good on Linux distributions.
+docker is written in the GO language.
+year: 2013
+written by: Solomen Hykes and Sebastian Phal.
+os in docker is very very light when compared to servers.
+os level of virtualization is called as containerization.
+
+ARCHITECTURE:
+DOCKER CLIENT: it interacts with the user (takes input and gives op)
+DOCKER HOST: where we install docker-engine (os)
+DOCKER DEAMON: manages all docker components (images, containers, n/w, volumes)
+DOCKER REGISTRY: stores all docker images on the internet.
+
+INSTALLATION:
+yum install docker -y
+systemctl start docker
+systemctl status docker
+docker version  
+
+COMMANDS:
+
+docker pull amazonlinux		: to downlaod an image 
+docker images			: to list images
+docker run -it --name cont1 amazonlinux	: to downlaod an image 
+yum install git maven -y	: to install packages
+ctrl d /ctrl p q		: tp exit from conatiner
+docker ps 			: to show running containers
+docker ps -a			: to show all containers
+
+
+HISTORY:
+  1  yum install docker -y
+    2  systemctl start docker
+    3  systemctl status docker
+    4  docker version
+    5  cd /
+    6  du -sh
+    7  docker pull amazonlinux
+    8  docker images
+    9  docker run --name cont1 amazonlinux
+   10  docker ps
+   11  docker ps -a
+   12  docker run -it --name cont2 amazonlinux
+   13  docker ps
+   14  docker ps -a
+   15  history
