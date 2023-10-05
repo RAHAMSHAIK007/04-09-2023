@@ -83,3 +83,296 @@ HISTORY:
    13  docker ps
    14  docker ps -a
    15  history
+
+
+=====================================================
+OS LEVEL OF VIRTUALIZATION:
+
+docker pull ubuntu
+docker run -it --name cont1 ubutnu
+apt update -y
+apt install maven git apache2 tree -y
+touch file{1..10}
+ctrl p q
+docker commit cont1 raham:v1
+docker images
+docker run -it --name cont2 raham:v1
+
+check all the files and pkgs are installed or not.
+
+Above method is manual method of creating custom images.
+so we use docker file for automate the work.
+
+
+DOCKER FILE:
+its a way of creating the image automatically.
+docker file is using components for it.
+Components inside the docker file will be Capital.
+In docker file D will be capital.
+we can build the image where our docker file is located.
+
+COMPONENTS:
+FROM	: used for base image
+RUN	: used to execute commands(image creation)
+CMD	: used to execute commands(cont creation)
+COPY	: to copy local files to the container
+ADD	: to copy internet files to container
+WORKDIR	: to go our required folder
+LABEL	: to attach labels for images
+ENV	: variables will work inside container
+ARGS	: variables will work outside container
+EXPOSE	: to give port number
+VOLUME	: to give volume for container
+ENTRYPOINT: high priority than cmd
+
+
+EX:1
+
+FROM ubuntu
+RUN apt update -y
+RUN apt install git -y
+RUN apt install maven -y
+
+docker build -t raham:v1 .
+docker run -it --name cont3 raham:v1
+
+EX-2:
+
+FROM ubuntu
+RUN apt update -y
+RUN apt install git -y
+RUN apt install maven -y
+RUN apt install tree -y
+CMD apt install mysql-server -y
+
+
+docker build -t raham:v2 .
+docker run -it --name cont4 raham:v2
+
+
+EX-3:
+
+
+FROM ubuntu
+RUN apt update -y
+RUN apt install git -y
+RUN apt install maven -y
+COPY index.html /tmp
+ADD http://dlcdn.apache.org/tomcat/tomcat-9/v9.0.80/bin/apache-tomcat-9.0.80.tar.gz /tmp
+
+
+docker build -t raham:v3 .
+docker run -it --name cont5 raham:v3
+
+
+EX-4:
+
+FROM ubuntu
+RUN apt update -y
+RUN apt install git -y
+RUN apt install maven -y
+COPY index.html /tmp
+ADD http://dlcdn.apache.org/tomcat/tomcat-9/v9.0.80/bin/apache-tomcat-9.0.80.tar.gz /tmp
+WORKDIR /tmp
+LABEL author Rahamshaik
+
+docker build -t raham:v4 .
+docker run -it --name cont6 raham:v4
+docker inspect cont6
+
+
+EX-5:
+
+FROM ubuntu
+RUN apt update -y
+RUN apt install git -y
+RUN apt install maven -y
+COPY index.html /tmp
+ADD http://dlcdn.apache.org/tomcat/tomcat-9/v9.0.80/bin/apache-tomcat-9.0.80.tar.gz /tmp
+WORKDIR /tmp
+LABEL author Rahamshaik
+ENV client swiggy
+ENV env prod
+EXPOSE 8080
+
+LINK FOR INDEX.HTML: https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_form_icon
+
+DEPLOYMENT:
+
+FROM ubuntu
+RUN apt update -y
+RUN apt install apache2 -y
+COPY index.html /var/www/html
+CMD ["/usr/sbin/apachectl", "-D", "FOREGROUND"]
+
+=========================================================================================
+
+
+DOCKER VOLUMES:
+
+in docker, we use volumes to store the data.
+volume is nothing but a folder inside a container.
+we can share a volume from one container to another.
+the volume contains the files which have data.
+we can attach the single volume to multiple containers.
+but at a time we can attach only one volume to one container.
+volumes are decoupled (loosely attached)
+if we delete the container volume will not be deleted.
+
+
+1. DOCKER FILE:
+
+vim Dockerfile
+
+FROM ubuntu
+VOLUME ["/volume1"]
+
+docker build -t raham:v1 .
+
+docker run -it --name cont1 raham:v1 
+cd volume1
+touch file{1..10}
+ctrl p q
+docker run -it --name cont2 --volumes-from cont1 --privileged=true ubuntu
+cd volume1
+ll
+touch file{11..20}
+ctrl p q
+docker run -it --name cont3 --volumes-from  cont1 --privileged=true ubuntu
+
+2. CLI:
+docker run -it --name cont4 -v /volume2 ubuntu
+cd volume2
+ll
+touch java{1..10}
+ctrl p q
+docker run -it --name cont5 --volumes-from cont4 --privileged=true ubuntu
+cd volume2 
+ls
+
+3. VOLUME MOUNTING:
+docker volume ls		: to list volumes
+docker volume create raham	: to create volume
+docker volume inspect raham	: to get complete info volumes
+cd /var/lib/docker/volumes/raham/_data
+touch python{1..10}
+docker run -it --name cont6 --mount source=raham,destination=/raham ubuntu
+cd raham
+ls
+
+
+
+COPYING FILES FROM CONTAINER TO LOCAL:
+docker volume inspect raham
+cd /var/lib/docker/volumes/raham/_data
+cp * /root
+
+docker volume rm raham1		: to remove volume
+docker volume prune		: to remove unused volume
+Note: we cant remove attached volume
+
+DOCKER SYSTEM: these commands used to show the docker components information
+
+docker system df    : to show the docker components resource utilzation
+docker system df -v : to show the docker components resource utilzation
+docker system prune : to remove unused docker components
+
+docker stop : will wait for the proccess to complete inside the container
+docker kill : will not wait for the proccess to complete inside the container
+docker history raham:v1
+
+
+RESOURCE MANAGEMENT:
+By default docker containers will use host resources (cpu, mem and ram)
+there is no limits for containers by default
+so we need to set the limit for containers
+
+docker run -it --name cont1 --cpus="0.5" --memory="512MB" ubuntu
+docker stats
+docker top cont1
+
+HISTORY:
+  2  docker version
+    3  vim Dockerfile
+    4  docker build -t raham:v1 .
+    5  docker run  -it --name cont1 raham:v1
+    6  docker run -it --name cont2 --volumes-from cont1 --privileged=true ubuntu
+    7  docker attach cont1
+    8  docker run -it --name cont3 --volumes-from  cont1 --privileged=true ubuntu
+    9  docker run -it --name cont4 -v /volume2 ubuntu
+   10  docker run -it --name cont5 --volumes-from cont4 --privileged=true ubuntu
+   11  docker volume ls
+   12  docker volume create raham
+   13  docker volume describe raham
+   14  docker volume inspect raham
+   15  cd /var/lib/docker/volumes/raham/_data
+   16  touch python{1..10}
+   17  ls
+   18  docker run -it --name cont6 --mount source=raham dest=raham ubuntu
+   19  docker run -it --name cont6 --mount source=raham,dest=raham ubuntu
+   20  docker run -it --name cont6 --mount source=raham,dest=/raham ubuntu
+   21  docker run -it --name cont6 --mount source=raham dest=/raham ubuntu
+   22  docker run -it --name cont6 --mount source=raham,destination=/raham ubuntu
+   23  docker volume inspect raham
+   24  cd /var/lib/docker/volumes/raham/_data
+   25  ll
+   26  cp * /root/
+   27  cd
+   28  ll
+   29  rm -rf *
+   30  touch php{1..10}
+   31  ll
+   32  docker volume inspect raham
+   33  cp * /var/lib/docker/volumes/raham/_data
+   34  cd /var/lib/docker/volumes/raham/_data
+   35  ls
+   36  cd
+   37  docker volume ls
+   38  docker volume inspect b5d30bacf19db8ca2c5c9605200df69b7c898bfcf887b6fd3ab4cfaa45103d48
+   39  cd /var/lib/docker/volumes/b5d30bacf19db8ca2c5c9605200df69b7c898bfcf887b6fd3ab4cfaa45103d48/_data
+   40  ll
+   41  cd
+   42  docker volume create raham1
+   43  docker volume ls
+   44  docker volume rm raham1
+   45  docker volume ls
+   46  docker volume rm raham
+   47  docker volume create raham1
+   48  docker system df
+   49  docker system df -v
+   50  docker kill cont1
+   51  docker kill cont2
+   52  docker kill cont3
+   53  docker ps -a
+   54  vim Dockerfile
+   55  docker build -t raham:v2 .
+   56  docker images
+   57  docker network create swiggy
+   58  docker system prune
+   59  docker build -t raham:v2 .
+   60  docker system prune
+   61  docker ps -a
+   62  docker kill cont4
+   63  docker ps -a
+   64  docker start cont4
+   65  docker ps -a
+   66  docker rm cont4
+   67  docker kill cont4
+   68  docker rm cont4
+   69  docker stop cont5
+   70  docker rm cont5
+   71  docker history raham:v1
+   72  vim Dockerfile
+   73  touch index.html
+   74  docker build -t raham:v1 .
+   75  docker history raham:v1
+   76  lscpu
+   77  lsmem
+   83  docker run -it --name cont1 --cpus="0.5" --memory="512MB" ubuntu
+   84  docker inspect cont1
+   85  docker stats
+   86  docker top cont1
+   87  history
+
+
+
