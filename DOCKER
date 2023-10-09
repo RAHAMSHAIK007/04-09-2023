@@ -603,3 +603,162 @@ HISTORY:
   102  docker run -itd --name cont1 -p 81:80 abduljavvadkhan786/movies:latest
   103  docker ps -a
   104  history
+
+
+==========================================
+High Avaliabilty: more than one server
+why: if one server got deleted then other server will gives the app
+
+DOCKER SWARM:
+its an orchestration tool for containers. 
+used to manage multiple containers on multiple servers.
+here we create a cluster (group of servers).
+in that clutser we can create same container on multiple servers.
+here we have master node and worker node.
+master node will distribute the container to worker nodes.
+worker node main purpose is to maintain the container.
+withut docker engine we cant create the cluster.
+
+
+SETUP:
+create 3 servers
+install docker and start the service
+hostnamectl set-hostname manager/worker-1/worker-2
+
+docker swarm init (manager) -- > copy-paste the token to worker nodes
+docker node ls
+
+Note: individual containers are not going to replicate.
+if we create a service then only containers will be distributed.
+
+SERVICE: it's a way of exposing and managing multipe conatiners.
+
+docker service create --name movies --replicas 3 -p 81:80 abduljavvadkhan786/movies:latest
+docker service ls		: to list services
+docker service inspect movies	: to get complete info of service
+docker service ps movies	: to list the containers of movies
+docker service scale movies=10	: to scale in the containers
+docker service scale movies=3	: to scale out the containers
+docker service rollback movies	: to go previous state
+docker service logs movies	: to see the logs
+docker service rm movies	: to delete the services.
+
+Note: if we delete a container it will recreate automatically itself.
+it is called as self healing.
+
+
+CLUSTER ACTIVIES:
+docker swarm leave (worker)	: to make node inactive from cluster
+docker node rm node-id (manager): to delete worker node which is on down state
+docker swarm join-token manager	: to generate the token to join
+docker node inspect node_id	: to get comple info of worker node
+
+Note: we cant delete the node which is ready state
+if we want to join the node to cluster again we need to paste the token on worker node
+
+
+
+DOCKER NETWORKING:
+Docker networks are used to make communication between the multiple containers that are running on same or different docker hosts. 
+We have different types of docker networks.
+Bridge Network
+Host Network
+None network
+Overlay network
+
+BRIDGE NETWORK: It is a default network that container will communicate with each other within the same host.
+
+HOST NETWORK: When you Want your container IP and ec2 instance IP same then you use host network
+
+NONE NETWORK: When you don’t Want The container to get exposed to the world, we use none network. It will not provide any network to our container.
+
+OVERLAY NETWORK: Used to communicate containers with each other across the multiple docker hosts.
+
+
+To create a network: docker network create network_name
+To see the list: docker network ls
+To delete a network: docker network rm network_name
+To inspect: docker network inspect network_name
+To connect a container to the network: docker network connect network_name container_id/name
+apt install iputils-ping -y : command to install ping checks
+To disconnect from the container: docker network disconnect network_name container_name
+To prune: docker network prune
+
+
+
+HISTORY:
+  1  docker run -itd --name cont1 -p 81:80 abduljavvadkhan786/movies:latest
+    2  docker ps -a
+    3  docker swarm init
+    4  docker node ls
+    5  docker run -itd --name cont2 -p 82:80 abduljavvadkhan786/movies:latest
+    6  docker ps -a
+    7  docker kill cont1 cont2
+    8*
+    9  docker ps -a
+   10  docker service create --name movies --replicas 3 -p 81:80 abduljavvadkhan786/movies:latest
+   11  docker ps -a
+   12  docker service ls
+   13  docker service create --name train --replicas 6 -p 82:80 abduljavvadkhan786/train:latest
+   14  docker service ls
+   15  docker service inspect movies
+   16  docker service ps movies
+   17  docker service ps train
+   18  docker service scale movies=10
+   19  docker service ps movies
+   20  docker service scale movies=3
+   21  docker service ps movies
+   22  docker service rollback movies
+   23  docker service ps movies
+   24  docker service logs movies
+   25  docker ps -a
+   26  docker kill 7f8ed843dcb7
+   27  docker ps -a
+   28  docker kill cc96db0e3219
+   29  docker ps -a
+   30  docker kill 80da2636e6b8
+   31  docker ps -a
+   32  docker service rm movies
+   33  docker service rm train
+   34  docker service ls
+   35  docker ps -a
+   36* docker service create --name movies --replicas 3 -p 81:80 abduljavvadkhan786/movies:latestdocdock
+   37  docker service ps movieses
+   38  docker service ps movies
+   39  docker node ls
+   40  docker node ls4
+   41  docker node ls
+   42  docker node rm op5w79wi6svb3j4fjp9pq5dal
+   43  docker node ls
+   44  docker node rm 9j2xs9t04irs4dje6e5eox8f6
+   45  docker node ls
+   46  docker node rm 4jdjs2hp42nm8egc90gyyrvjq
+   47  docker swarm join-token manager
+   48  docker node inspect xs0vn9mk4a2e8wudsqrkrsm3w
+   49  docker network ls
+   50  docker service rm movies
+   51  docker network create raham
+   52  docker network ls
+   53  docker network insepect raham
+   54  docker network inspect raham
+   55  docker run -itd --name cont1 -p 81:80 abduljavvadkhan786/movies:latest
+   56  docker run -itd --name cont2 -p 82:80 abduljavvadkhan786/movies:latest
+   57  docker inspect cont1 | grep -i network
+   58  docker network connect cont1 raham
+   59  docker network connect raham cont1
+   60  docker network inspect raham
+   61  docker network connect cont2 raham
+   62  docker network connect raham cont2
+   63  docker network inspect raham
+   64  docker run -itd --name cont3 -p 32:80 abduljavvadkhan786/movies:latest
+   65  docker network connect raham cont3
+   66  docker network inspect raham
+   67  docker attach cont1
+   68  docker attach cont2
+   69  docker ps -a
+   70  docker exec -it cont3 ls
+   71  docker exec -it cont3 apt update -y
+   72  docker exec -it cont3 ping 172.19.0.2
+   73  docker exec -it cont3 apt install iputils-ping -y
+   74  docker exec -it cont3 ping 172.19.0.2
+   75  history
