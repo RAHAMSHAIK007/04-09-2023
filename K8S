@@ -1,0 +1,272 @@
+DOCKER SWARM:
+
+C N C A
+C N P C A
+
+
+C = CLUSTER
+N = NODE
+P = POD
+C = CONATINER
+A = APPLICATION
+
+
+MASTER NODE COMPONENTS:
+1.API Server	: communicates with cluster (command -- > execute -- > op)
+2.ETCD 		: db for cluster (stores cluster info)
+3.Controllers-manager :  used to control k8s components
+4. Schedulers: to schedule pods inside worker node. (depends on hardware)
+
+
+WORKER NODE COMPONENTS:
+1. KUBELET: its an agent (informs everything to master node)
+2. KUBEPROXY: it deal with nlw
+3. POD: group of containers.
+
+TYPES:
+1. SELF-MANAGED CLUSTERS:
+A. MINIKUBE (SINGLE NODE)
+B. KUBEADM (MULTI NODE)
+C. KOPS (MULTI NODE - AUTOMATED)
+
+2. CLODE BASED CLUSTERS:
+A. EKS - AWS
+B. AKS - AZURE
+C. GKS - GOOGLE
+
+
+MINIKUBE:
+It is a tool used to setup single node cluster on K8's. 
+It contains API Servers, an ETDC database and container runtime
+It is used for development, testing, and experimentation purposes on local. 
+Here Master and worker runs on the same machine.
+It is a platform Independent.
+
+NOTE: But we dont implement this in real-time
+
+REQUIREMENTS:
+2 CPUs or more
+2GB of free memory
+20GB of free disk space
+Internet connection
+Container or virtual machine manager, such as: Docker.
+
+SETUP:
+sudo apt update -y
+sudo apt upgrade -y
+sudo apt install curl wget apt-transport-https -y
+sudo curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo mv minikube-linux-amd64 /usr/local/bin/minikube
+sudo chmod +x /usr/local/bin/minikube
+sudo minikube version
+sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+sudo echo "$(cat kubectl.sha256) kubectl" | sha256sum --check
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+sudo minikube start --driver=docker --force
+
+
+PODS:
+It is a smallest unit of deployment in K8's.
+It is a group of containers.
+Pods are ephemeral (short living objects)
+Mostly we can use single container inside a pod but if we required, we can create multiple containers inside a same pod.
+when we create a pod, containers inside pods can share the same network namespace, and can share the same storage volumes .
+While creating pod, we must specify the image, along with any necessary configuration and resource limits.
+K8's cannot communicate with containers, they can communicate with only pods.
+
+ We can create this pod in two ways, 
+1. Imperative(command) 
+2. Declarative (Manifest file)
+
+
+IMPERATIVE: 
+kubectl run pod1 --image rahamshaik/paytmtrain:latest
+kubectl get po/pod/pods
+kubectl get po/pod/pods -o wide
+kubectl describe pod pod1
+kubectl delete pod pod1
+
+Declarative:
+vim abc.yml
+
+apiVersion: v1
+kind: Pod
+metadata:
+   name: pod1
+spec:
+  containers:
+    - image: nginx
+      name: cont1
+
+kubectl create -f abc.yml
+kubectl get po/pod/pods
+kubectl get po/pod/pods -o wide
+kubectl describe pod pod1
+kubectl delete pod pod1
+
+REPLICASET:
+
+it will create same pod of multiple replicas.
+if we delete one pod it will create automatically.
+we can distribute the load also.
+
+vim abc.yml
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  labels:
+    app: movies
+  name: movies-rs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: movies
+  template:
+    metadata:
+      labels:
+        app: movies
+    spec:
+      containers:
+        - name: cont1
+          image: abduljavvadkhan786/movies:latest
+
+kubectl create -f abc.yml
+
+kubectl get rs
+kubectl get rs -o wide
+kubectl describe rs movies-rs
+kubectl edit rs/movies-rs
+kubectl delete rs movies-rs
+
+
+SCALE:
+SCALE-IN : TO INCREASE STRENGTH OF PODS
+kubectl scale rs/movies-rs --replicas=20
+
+SCALE-OUT : TO DECREASE STRENGTH OF PODS
+kubectl scale rs/movies-rs --replicas=5
+
+SCALING FOLLOWS LIFO PATTERN:
+LIFO: LAST IN FIRST OUT
+the pod which is created will be deleted first automatically when we scale out.
+
+
+DRAW BACK:
+it cant update the applicationm (rollin and rollout will not work)
+
+DEPLOYMENT:
+in k8s deployment will be highlevel object
+it will do all operations like RS.
+it will do roll back which cannot be done in rs.
+
+
+DEPLOYMENT -- > REPLICASET -- > POD
+
+vim abc.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: movies
+  name: movies-rs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: movies
+  template:
+    metadata:
+      labels:
+        app: movies
+    spec:
+      containers:
+        - name: cont1
+          image: abduljavvadkhan786/movies:latest
+
+kubectl create -f abc.yml
+
+kubectl get deploy
+kubectl get deploy -o wide
+kubectl describe deploy movies-rs
+kubectl edit deploy/movies-rs
+kubectl delete deploy movies-rs
+
+
+SCALE:
+SCALE-IN : TO INCREASE STRENGTH OF PODS
+kubectl scale rs/movies-rs --replicas=20
+
+SCALE-OUT : TO DECREASE STRENGTH OF PODS
+kubectl scale rs/movies-rs --replicas=5
+
+kubectl api-resources
+
+HISTORY:
+
+ 1  vim minikube.sh
+    2  sh minikube.sh
+    3  kubectl run pod1 --image abduljavvadkhan786/train:latest
+    4  kubectl get po
+    5  kubectl delete pod pod1
+    6  vim pod.yml
+    7  kubectl get po
+    8  kubectl create -f pod.yml
+    9  cat pod.yml
+   10  vim pod.yml
+   11  kubectl create -f pod.yml
+   12  kubectl get rs
+   13  kubectl get po
+   14  kubectl get po -o wide
+   15  kubectl get po --show-labels
+   16  kubectl describe rs movies-rs
+   17  kubectl get po
+   18  kubectl delete pod movies-rs-8jvrs
+   19  kubectl get po
+   20  kubectl delete pod movies-rs-wz7l8
+   21  kubectl get po
+   22  kubectl scale rs/movies-rs --replicas=10
+   23  kubectl get po
+   24  kubectl scale rs/movies-rs --replicas=20
+   25  kubectl get po
+   26  kubectl scale rs/movies-rs --replicas=5
+   27  kubectl get po
+   28  cat pod.yml
+   29  kubectl desribe rs movies-rs
+   30  kubectl describe rs movies-rs
+   31  kubectl edit rs/movies-rs
+   32  kubectl describe rs movies-rs
+   33  kubectl get po
+   34  kubectl describe pod movies-rs-9w5wk | grep -i image
+   35  kubectl describe pod movies-rs-bdjdw | grep -i image
+   36  kubectl describe pod movies-rs-gz2xd | grep -i image
+   37  kubectl delete rs movies-rs
+   38  kubectl get po
+   39  vim pod.yml
+   40  kubectl get po
+   41  kubectl create -f pod.yml
+   42  kubectl get deploy
+   43  kubectl get rs
+   44  kubectl get po
+   45  kubectl edit deploy/movies-rs
+   46  kubectl get po
+   47  kubectl describe pod movies-rs-546cff74d-5dpcd }| grep -i image
+   48  kubectl describe pod movies-rs-546cff74d-ldbxj | grep -i image
+   49  kubectl describe pod movies-rs-546cff74d-lz9pb | grep -i image
+   50  kubectl edit deploy/movies-rs
+   51  kubectl get po
+   52  kubectl describe pod movies-rs-6764d9ccff-645qq | grep -i image
+   53  kubectl describe pod movies-rs-6764d9ccff-dj4db | grep -i image
+   54  kubectl describe pod movies-rs-6764d9ccff-qdksw | grep -i image
+   55  kubectl scale deploy/movies-rs --replicas=10
+   56  kubectl get po
+   57  kubectl delete deploy movies-rs
+   58  kubectl api-resources
+   59  cat minikube.sh
+   60  history
+root@ip-172-31-43-3:~#
