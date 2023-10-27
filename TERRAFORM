@@ -1,3 +1,173 @@
+
+INFRASTRUCTURE:
+resources used to run our application on cloud.
+ex: ec2, s3, elb, vpc --------------
+
+
+in genral we used to deploy infra on manual 
+
+Manual:
+1. time consume
+2. Manual work
+3. committing mistakes
+
+Automate -- > Terraform -- > code -- > hcl (Hashicorp configuration languge)
+
+
+
+its a tool used to make infrastructure automation.
+its a free and open source.
+its platform independent.
+it comes on the year 2014.
+who: mitchel Hashimoto 
+ownde: hasicorp 
+terraform is written on the go language.
+We can call terraform as IAAC TOOL.
+
+HOW IT WORKS:
+terraform uses code to automate the infra.
+we use HCL : HashiCorp Configuration Language.
+
+IAAC: Infrastructure as a code.
+
+Code --- > execute --- > Infra 
+
+ADVANTAGES:
+1. Reuseable 
+2. Time saving
+3. Automation
+4. Avoiding mistakes
+5. Dry run
+
+
+CFT = AWS
+ARM = AZURE
+GDE = GOOGLE
+
+TERRAFROM = ALL CLOUDS
+
+INSTALLING TERRAFORM:
+
+sudo yum install -y yum-utils shadow-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo yum -y install terraform
+aws configure
+
+
+mkdir terraform
+cd terraform
+
+vim main.tf 
+
+provider "aws" {
+region = "us-east-1"
+}
+
+resource "aws_instance" "one" {
+ami = "ami-03eb6185d756497f8"
+instance_type = "t2.micro"
+}
+
+
+TERRAFORM COMMANDS:
+terraform init	: initalize the provider plugins on backend
+terraform plan	: to create execution plan
+terrafrom apply : to create resources
+terrafrom destroy : to delete resources
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+resource "aws_instance" "one" {
+count = 5
+ami = "ami-0b41f7055516b991a"
+instance_type = "t2.micro"
+}
+
+terraform apply --auto-approve
+terraform destroy --auto-approve
+
+
+STATE FILE: used to store the resource information which is created by terraform
+to track the resource activities
+in real time entire resource info is on state file.
+we need to keep it safe
+if we lost this file we cant track the infra.
+Command:
+terraform state list
+
+terrafrom target: used to destroy the specific resource 
+terraform state list
+single target: terraform destroy -target="aws_instance.one[3]"
+multi targets: terraform destroy -target="aws_instance.one[1]" -target="aws_instance.one[2]"
+
+
+TERRAFORM VARIABLES:
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+resource "aws_instance" "one" {
+count = var.instance_count
+ami = "ami-0b41f7055516b991a"
+instance_type = var.instance_type
+}
+
+variable "instance_type" {
+description = "*"
+type = string
+default = "t2.micro"
+}
+
+variable "instance_count" {
+description = "*"
+type = number
+default = 5
+}
+
+terraform apply --auto-approve
+terraform destroy --auto-approve
+
+
+TERRAFORM VAR FILES:
+these files used to store variables seperately on terraform.
+
+
+
+cat main.tf
+provider "aws" {
+region = "us-east-1"
+}
+
+resource "aws_instance" "one" {
+count = var.instance_count
+ami = "ami-03eb6185d756497f8"
+instance_type = var.instance_type
+tags = {
+Name = "raham-server"
+}
+}
+
+cat variable.tf
+variable "instance_count" {
+description = "*"
+type = number
+default = 3
+}
+
+variable "instance_type" {
+description = "*"
+type = string
+default = "t2.micro"
+}
+
+
+terraform apply --auto-approve 
+terraform destroy --auto-approve
+
+HISTORY:
 1  sudo yum install -y yum-utils shadow-utils
     2  sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/Amazon                                                                                                                                                   Linux/hashicorp.repo
     3  sudo yum -y install terraform
@@ -43,3 +213,248 @@
    43  ll
    44  terraform state list
    45  history
+
+
+====================================================================
+
+TERRAFORM TF VRAS:
+when we have diff configuration for diff envs or servers tf var files will able to distribute the configuration in file.
+based on our req we can seletect which tfvar file we want and run with main.tf
+
+
+
+
+cat main.tf
+provider "aws" {
+region = "ap-south-1"
+}
+
+resource "aws_instance" "one" {
+ami = var.ami_id
+instance_type = var.instance_type
+tags = {
+Name = "terraform-server"
+}
+}
+[root@ip-172-31-14-114 terraform]# cat variable.tf
+variable "instance_type" {
+}
+
+variable "ami_id" {
+}
+
+[root@ip-172-31-14-114 terraform]# cat dev.tfvars
+ami_id = "ami-06791f9213cbb608b"
+
+instance_type = "t2.micro"
+
+cat test.tfvars
+
+ami_id = "ami-0287a05f0ef0e9d9a"
+
+instance_type = "t2.medium"
+
+terraform apply --auto-approve -var-file="dev.tfvars"
+terraform destroy --auto-approve -var-file="dev.tfvars"
+terraform apply --auto-approve -var-file="test.tfvars"
+terraform destroy --auto-approve -var-file="test.tfvars"
+
+TERRAFORM CLI: used to pass the variables form cli.
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+resource "aws_instance" "one" {
+ami = var.ami_id
+instance_type = "t2.micro"
+tags = {
+Name = "terraform-server"
+}
+}
+
+variable "ami_id" {
+}
+
+terraform apply --auto-approve -var="ami_id=ami-0287a05f0ef0e9d9a"
+terraform destroy --auto-approve -var="ami_id=ami-0287a05f0ef0e9d9a"
+
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+resource "aws_instance" "one" {
+ami = "ami-0287a05f0ef0e9d9a"
+instance_type = var.instance_type
+tags = {
+Name = "terraform-server"
+}
+}
+
+variable "instance_type" {
+}
+
+
+terraform apply --auto-approve -var="instance_type=t2.medium"
+terraform destroy --auto-approve -var="instance_type=t2.medium"
+
+TERRAFORM OUTPUTS:
+used to print the properties of resources created from terraform
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+resource "aws_instance" "one" {
+ami = "ami-0287a05f0ef0e9d9a"
+instance_type = "t2.micro"
+tags = {
+Name = "terraform-server"
+}
+}
+
+output "raham" {
+value = [aws_instance.one.public_ip, aws_instance.one.private_ip, aws_instance.one.public_dns]
+}
+
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+resource "aws_instance" "one" {
+ami = "ami-0287a05f0ef0e9d9a"
+instance_type = "t2.micro"
+tags = {
+Name = "terraform-server"
+}
+}
+
+resource "aws_s3_bucket" "two" {
+bucket = "rahamshaik7766prodbucket"
+}
+
+resource "aws_iam_user" "three" {
+name = "rahamshaik007"
+}
+
+resource "aws_iam_group" "four" {
+name = "devopsgroupp"
+}
+
+resource "aws_ebs_volume" "five" {
+size = 25
+availability_zone = "ap-south-1a"
+tags = {
+Name = "raham-ebss"
+}
+}
+
+TERRAFORM TAINT: used to recreate the specific resource from infrastructure.
+if a resource is not workig properly then we will makr it as taint.
+then if i run apply command it will recreate automatically.
+
+
+terraform state list
+terraform taint aws_instance.one
+terraform apply --auto-approve
+
+terraform taint aws_ebs_volume.five
+terraform taint aws_s3_bucket.two
+terraform taint aws_instance.one
+
+terraform untaint aws_instance.one
+terraform apply --auto-approve
+
+
+tERRAFORM REMOTE BACKEND SETUP:
+when we create infra the information of resources will store on state file.
+so it will be tracking the infra information.
+so we need to take backup of that file.
+if we lost that file we cant track the infra.
+so we prefer to locate the state file on remote loaction.
+here im using s3 as remote backend.
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "terraformstaebucketraham0077"
+    key    = "prod/terraform.tfstate"
+    region = "ap-south-1"
+  }
+}
+
+resource "aws_instance" "one" {
+ami = "ami-0287a05f0ef0e9d9a"
+instance_type = "t2.micro"
+tags = {
+Name = "terraform-server"
+}
+}
+
+resource "aws_s3_bucket" "two" {
+bucket = "rahamshaik7766prodbucket"
+}
+
+resource "aws_iam_user" "three" {
+name = "rahamshaik007"
+}
+
+resource "aws_iam_group" "four" {
+name = "devopsgroupp"
+}
+
+resource "aws_ebs_volume" "five" {
+size = 25
+availability_zone = "ap-south-1a"
+tags = {
+Name = "raham-ebss"
+}
+}
+
+Note: while using new block always we need to run terraform init
+otherwise, plugins will not be downloaded
+
+after removing backend setup run this command:
+terraform init -migrate-state
+
+HISTORY:
+ 63  terraform destroy --auto-approve
+   64  terraform apply --auto-approve -var=instance_type=t2.medium"
+   65  terraform apply --auto-approve -var="instance_type=t2.medium"
+   66  cd terraform/
+   67  ll
+   68  terraform apply --auto-approve -var="instance_type=t2.medium"
+   69  terraform destroy --auto-approve -var="instance_type=t2.medium"
+   70  vim main.tf
+   71  terraform apply --auto-approve
+   72  vim main.tf
+   73  terraform apply --auto-approve
+   74  vim main.tf
+   75  terraform apply --auto-approve
+   76  cat main.tf
+   77  vim main.tf
+   78  cat main.tf
+   79  terraform apply --auto-approve
+   80  terraform state list
+   81  terraform taint aws_instance.one
+   82  terraform apply --auto-approve
+   83  terraform state list
+   84  terraform taint aws_ebs_volume.five
+   85  terraform taint aws_s3_bucket.two
+   86  terraform taint aws_instance.one
+   87  terraform untaint aws_instance.one
+   88  terraform apply --auto-approve
+   89  terraform state list
+   90  terraform destroy --auto-approve
+   91  vim main.tf
+   92  terraform init
+   93  terraform apply --auto-approve
+   94  ll
+   95  cat main.tf
+   96  terraform destroy --auto-approve
+   97  history
