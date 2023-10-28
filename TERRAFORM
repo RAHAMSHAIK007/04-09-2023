@@ -458,3 +458,187 @@ HISTORY:
    95  cat main.tf
    96  terraform destroy --auto-approve
    97  history
+======================================================
+
+TERRAFORM LOCALS:
+its a block used to define the values.
+we can define the vaule once and used it for multiple times.
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+locals {
+env = "test"
+}
+
+resource "aws_vpc" "one" {
+cidr_block = "10.0.0.0/16"
+tags = {
+Name = "${local.env}-vpc"
+}
+}
+
+resource "aws_subnet" "two" {
+cidr_block = "10.0.0.0/16"
+availability_zone = "ap-south-1a"
+vpc_id = aws_vpc.one.id
+tags = {
+Name = "${local.env}-subnet"
+}
+}
+
+resource "aws_instance" "three" {
+subnet_id = aws_subnet.two.id
+ami = "ami-06006e8b065b5bd46"
+instance_type = "t2.micro"
+tags = {
+Name = "${local.env}-server"
+}
+}
+
+TERRAFORM WORKSPACE:
+WORKSPACE: Where we write the code and execute operations.
+it is used to isolate the env.
+in real time all the works we do on workspaces only.
+if we perform an operation on one workspace it wont affect another workspace.
+
+
+NOTE:
+1. we can't delete our current workspace.
+2. we can't delete our workspace without deleting resources.
+3. we cant't delete default workspace.
+
+COMMANDS:
+
+terraform workspace list	: to list workspaces
+terraform workspace new dev	: to create a new workspace	
+terraform workspace show	: to show current workspace
+terraform workspace select prod	: to switch the workspaces
+terraform workspace delete prod	: to delete the workspaces
+
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+locals {
+env = "${terraform.workspace}"
+}
+
+resource "aws_vpc" "one" {
+cidr_block = "10.0.0.0/16"
+tags = {
+Name = "${local.env}-vpc"
+}
+}
+
+resource "aws_subnet" "two" {
+cidr_block = "10.0.0.0/16"
+availability_zone = "ap-south-1a"
+vpc_id = aws_vpc.one.id
+tags = {
+Name = "${local.env}-subnet"
+}
+}
+
+resource "aws_instance" "three" {
+subnet_id = aws_subnet.two.id
+ami = "ami-06006e8b065b5bd46"
+instance_type = "t2.micro"
+tags = {
+Name = "${local.env}-server"
+}
+}
+
+
+TERRAFORM GRAPH: used to show the flow chart of our infra
+terraform graph
+copy paste the content in graphviz online
+
+
+ALIAS AND PROVIDER: used to create resources on mutliple regions in single file.
+
+provider "aws" {
+region = "ap-south-1"
+}
+
+resource "aws_instance" "three" {
+ami = "ami-06006e8b065b5bd46"
+instance_type = "t2.large"
+tags = {
+Name = "mumbai-server"
+}
+}
+
+provider "aws" {
+region = "ap-northeast-1"
+alias = "tokyo"
+}
+
+HISTORY:
+    1  sudo yum install -y yum-utils shadow-utils
+    2  sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux                                                                                                                                                                                                                            /hashicorp.repo
+    3  sudo yum -y install terraform
+    4  aws configure
+    5  mkdir terraform
+    6  cd
+    7  cd terraform/
+    8  vim main.tf
+    9  terraform init
+   10  terraform valiadte
+   11  terraform validate
+   12  terraform plan
+   13  cd
+   14  vim .aws/credentials
+   15  cd terraform/
+   16  terraform plan
+   17  terraform apply --aut-approve
+   18  terraform apply --auto-approve
+   19  cd
+   20  vim .aws/config
+   21  cd terraform/
+   22  vim main.tf
+   23  terraform apply --auto-approve
+   24  vim main.tf
+   25  terraform apply --auto-approve
+   26  vim main.tf
+   27  terraform apply --auto-approve
+   28  terraform destroy --auto-approve
+   29  terraform workspace list
+   30  terraform workspace new dev
+   31  terraform workspace list
+   32  terraform workspace show
+   33  vim main.tf
+   34  terraform apply --auto-approve
+   35  terraform workspace new test
+   36  vim main.tf
+   37  terraform workspace new test
+   38  terraform apply --auto-approve
+   39  terraform workspace new prod
+   40  vim main.tf
+   41  terraform apply --auto-approve
+   42  terraform workspace delete prod
+   43  terraform workspace select prod
+   44  terraform workspace delete prod
+   45  terraform workspace select test
+   46  terraform workspace delete prod
+   47  terraform workspace select prod
+   48  terraform destroy --auto-approve
+   49  terraform workspace select test
+   50  terraform workspace delete prod
+   51  terraform destroy --auto-approve
+   52  terraform workspace select dev
+   53  terraform workspace delete test
+   54  terraform destroy --auto-approve
+   55  terraform workspace select default
+   56  terraform workspace delete dev
+   57  terraform workspace list
+   58  terraform workspace delete default
+   59  vim main.tf
+   60  terraform apply --auto-approve
+   61  terraform graph
+   62  terraform destroy --auto-approve
+   63  vim main.tf
+   64  terraform apply --auto-approve
+   65  terraform destroy --auto-approve
